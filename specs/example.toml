@@ -1,0 +1,8 @@
+# specs/example.toml
+[[cases]]
+name = "simple match"
+input = "function hello() {}"
+expected = [
+  { scope = "keyword.function", text = "function" },
+  { scope = "text", text = " hello() {}" }
+]
