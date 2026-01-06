@@ -4,6 +4,7 @@ package normalizer
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/ferchd/tm2hsl/internal/ir"
 	"github.com/ferchd/tm2hsl/internal/parser"
@@ -133,17 +134,26 @@ func (n *Normalizer) expandPatterns(patterns []parser.GrammarRule, repository ma
 
 // expandInclude - Expands a single include reference
 func (n *Normalizer) expandInclude(include string, repository map[string]parser.GrammarRule) []parser.GrammarRule {
-	if rule, exists := repository[include]; exists {
-		return []parser.GrammarRule{rule}
-	}
-	// Handle $self, $base, etc.
-	switch include {
-	case "$self":
-		// Return self patterns, but for simplicity, ignore
+	// Handle special includes
+	switch {
+	case include == "$self":
+		// $self refers to the current grammar's patterns - for now, return empty to avoid recursion
 		return nil
-	case "$base":
+	case include == "$base":
+		// $base would refer to base grammar patterns - not implemented yet
+		return nil
+	case strings.HasPrefix(include, "#"):
+		// Named reference within repository, e.g., "#comment"
+		name := strings.TrimPrefix(include, "#")
+		if rule, exists := repository[name]; exists {
+			return []parser.GrammarRule{rule}
+		}
 		return nil
 	default:
+		// Direct repository reference
+		if rule, exists := repository[include]; exists {
+			return []parser.GrammarRule{rule}
+		}
 		return nil
 	}
 }
