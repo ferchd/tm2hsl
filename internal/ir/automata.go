@@ -1,6 +1,8 @@
 package ir
 
 import (
+	"fmt"
+
 	"github.com/ferchd/tm2hsl/internal/parser"
 )
 
@@ -38,6 +40,9 @@ type TokenDef struct {
 }
 
 func BuildFromAST(ast *parser.TextMateAST) (*StateMachine, error) {
+	if ast == nil {
+		return nil, fmt.Errorf("AST is nil")
+	}
 	// TODO: Implement builder pattern for AST conversion
 	return &StateMachine{
 		Name:    ast.ScopeName,
