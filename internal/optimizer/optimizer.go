@@ -1,4 +1,4 @@
-// optimizer.go - Solo transformaciones estructurales
+// optimizer.go - Only structural transformations
 package optimizer
 
 import (
@@ -7,9 +7,9 @@ import (
 	"github.com/ferchd/tm2hsl/internal/ir"
 )
 
-// Optimizer - No entiende scopes ni semántica
+// Optimizer - Does not understand scopes or semantics
 type Optimizer struct {
-	// Reglas de optimización puramente estructurales
+	// Purely structural optimization rules
 	passes []OptimizationPass
 }
 
@@ -24,7 +24,7 @@ func NewOptimizer() *Optimizer {
 	}
 }
 
-// Optimize - Aplica pasos sin cambiar semántica
+// Optimize - Applies steps without changing semantics
 func (o *Optimizer) Optimize(program *ir.Program) (*ir.Program, error) {
 	for _, pass := range o.passes {
 		changed, err := pass.Apply(program)
@@ -32,7 +32,7 @@ func (o *Optimizer) Optimize(program *ir.Program) (*ir.Program, error) {
 			return nil, fmt.Errorf("pass %s failed: %w", pass.Name(), err)
 		}
 		if !changed {
-			// Si no cambió nada, podemos detenernos
+			// If nothing changed, we can stop
 			break
 		}
 	}

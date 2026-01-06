@@ -6,6 +6,7 @@ import (
 	"github.com/ferchd/tm2hsl/internal/config"
 	"github.com/ferchd/tm2hsl/internal/ir"
 	"github.com/ferchd/tm2hsl/internal/normalizer"
+	"github.com/ferchd/tm2hsl/internal/optimizer"
 	"github.com/ferchd/tm2hsl/internal/parser"
 	"github.com/ferchd/tm2hsl/internal/serializer"
 	"github.com/ferchd/tm2hsl/pkg/hsl"
@@ -47,7 +48,9 @@ func (c *Compiler) Compile(configPath string) (*CompilationResult, error) {
 	}
 
 	// 5. Optimize
-	// TODO: Implement optimization
+	if err = c.optimize(); err != nil {
+		return nil, err
+	}
 
 	// 6. Generar bytecode
 	if err = c.generateBytecode(); err != nil {
@@ -109,14 +112,14 @@ func (c *Compiler) buildIR() error {
 	return nil
 }
 
-func (c *Compiler) optimize() {
-	// TODO: Implement optimization
-	// opt := optimizer.NewOptimizer()
-	// optimized, err := opt.Optimize(c.irProgram)
-	// if err != nil {
-	//     // handle error
-	// }
-	// c.irProgram = optimized
+func (c *Compiler) optimize() error {
+	opt := optimizer.NewOptimizer()
+	optimized, err := opt.Optimize(c.irProgram)
+	if err != nil {
+		return fmt.Errorf("optimization failed: %w", err)
+	}
+	c.irProgram = optimized
+	return nil
 }
 
 func (c *Compiler) generateBytecode() error {
