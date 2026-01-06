@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/ferchd/tm2hsl/internal/ir"
 	"github.com/ferchd/tm2hsl/pkg/hsl"
 )
 
@@ -92,6 +93,29 @@ func (s *Serializer) WriteToFile(bytecode *hsl.Bytecode, path string) error {
 	defer file.Close()
 
 	return s.Serialize(bytecode, file)
+}
+
+// ConvertToBytecode - Convert StateMachine to HSL Bytecode
+func (s *Serializer) ConvertToBytecode(machine *ir.StateMachine) *hsl.Bytecode {
+	bytecode := &hsl.Bytecode{
+		Header: hsl.Header{
+			Magic:      [4]byte{'H', 'S', 'L', '1'},
+			Version:    1,
+			HeaderSize: uint16(binary.Size(hsl.Header{})),
+		},
+		Name:  machine.Name,
+		Scope: "source.test", // TODO: from machine
+	}
+
+	// TODO: Populate tables from machine.States, machine.Actions, etc.
+	// For now, stub empty tables
+	bytecode.StringTable = hsl.StringTable{Count: 0, Offsets: []uint32{}, Data: []byte{}}
+	bytecode.RegexTable = hsl.RegexTable{Count: 0, Entries: []hsl.RegexEntry{}}
+	bytecode.ScopeTable = hsl.ScopeTable{Count: 0, Entries: []hsl.ScopeEntry{}}
+	bytecode.StateTable = hsl.StateTable{Count: 0, Entries: []hsl.StateEntry{}}
+	bytecode.RuleTable = hsl.RuleTable{Count: 0, Entries: []hsl.RuleEntry{}}
+
+	return bytecode
 }
 
 func (s *Serializer) writeStringTable(w io.Writer, table *hsl.StringTable) error {
