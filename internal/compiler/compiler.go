@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ferchd/tm2hsl/internal/config"
 	"github.com/ferchd/tm2hsl/internal/ir"
@@ -79,17 +80,15 @@ func (c *Compiler) parseGrammar() error {
 		return fmt.Errorf("no grammar specified in configuration")
 	}
 
-	// Stub implementation - create a minimal TextMateAST
-	c.grammar = &parser.TextMateAST{
-		ScopeName: "source.test",
-		Name:      "Test Language",
-		Patterns: []parser.GrammarRule{
-			{
-				Match: "function",
-				Name:  "keyword.function",
-			},
-		},
-		Repository: make(map[string]parser.GrammarRule),
+	file, err := os.Open(grammarPath)
+	if err != nil {
+		return fmt.Errorf("error abriendo archivo de gramática: %w", err)
+	}
+	defer file.Close()
+
+	c.grammar, err = parser.LoadGrammar(file)
+	if err != nil {
+		return fmt.Errorf("error cargando gramática: %w", err)
 	}
 	return nil
 }
