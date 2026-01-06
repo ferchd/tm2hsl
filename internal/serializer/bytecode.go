@@ -4,6 +4,7 @@ package serializer
 import (
 	"bytes"
 	"encoding/binary"
+	"hash/crc32"
 
 	"github.com/ferchd/tm2hsl/internal/ir"
 )
@@ -28,12 +29,7 @@ func serializeActions(actions map[ir.ActionID]ir.Action) []ActionEntry {
 }
 
 func computeChecksum(data []byte) uint32 {
-	// Simple checksum - TODO: Use proper CRC32
-	var sum uint32
-	for _, b := range data {
-		sum += uint32(b)
-	}
-	return sum
+	return crc32.ChecksumIEEE(data)
 }
 
 // BytecodeHeader - Fixed header
