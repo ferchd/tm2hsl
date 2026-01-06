@@ -159,10 +159,10 @@ docs: update HSL specification
 
 ## Documentation
 
-- [HSL Specification](docs/HSL_SPEC.md) - Detailed bytecode format
+- [HSL Specification](docs/HSL_SPEC.md) - Detailed bytecode format and execution model
 - [Migration Guide](docs/MIGRATION.md) - From TextMate to HSL
 - [Internal API](docs/API.md) - Developer reference
-- [Examples](examples/) - Sample languages
+- [Examples](examples/) - Sample language compilations
 
 ## Project Status
 
