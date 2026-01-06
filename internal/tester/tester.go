@@ -2,7 +2,7 @@ package tester
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
@@ -60,7 +60,7 @@ func (t *Tester) Run(configPath, specDir string) (*TestReport, error) {
 }
 
 func (t *Tester) runSpecFile(path string, report *TestReport) error {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
