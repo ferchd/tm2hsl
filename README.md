@@ -60,13 +60,6 @@ tm2hsl compile --config language.toml --output output.hsl
 tm2hsl compile --config language.toml --validate-only
 ```
 
-### Testing
-
-```bash
-# Run tokenization tests
-tm2hsl test --config language.toml --spec-dir specs/
-```
-
 ### Configuration File
 
 Create a `language.toml`:
@@ -95,7 +88,6 @@ tm2hsl
 │   ├── optimizer/       # Optimizations
 │   ├── codegen/         # Bytecode generation
 │   ├── serializer/      # HSL serialization
-│   ├── tester/          # Testing framework
 │   └── config/          # Configuration handling
 ├── pkg/                 # Public packages
 │   ├── hsl/            # HSL bytecode format
@@ -137,29 +129,7 @@ Rule Table
 Scope Table
 ```
 
-## Testing
 
-tm2hsl includes a complete framework for language testing:
-
-```bash
-# Run all tests
-make test
-
-# Tests with coverage
-make test-coverage
-
-# Performance tests
-make bench
-```
-
-### TOML-based Tests
-
-```toml
-# specs/example.toml
-[[cases]]
-input = "function hello() {}"
-expected = ["keyword.function", "identifier", "punctuation.bracket"]
-```
 
 ## Contributing
 
