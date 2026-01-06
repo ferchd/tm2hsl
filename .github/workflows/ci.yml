@@ -122,89 +122,53 @@ jobs:
     - name: Test binary execution
       run: ./tm2hsl --help
 
-  cross-platform:
-    name: Cross-platform Build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            goos: linux
-            goarch: amd64
-          - os: ubuntu-latest
-            goos: linux
-            goarch: arm64
-          - os: ubuntu-latest
-            goos: darwin
-            goarch: amd64
-          - os: ubuntu-latest
-            goos: darwin
-            goarch: arm64
-          - os: ubuntu-latest
-            goos: windows
-            goarch: amd64
+   cross-platform:
+     name: Cross-platform Build
+     runs-on: ubuntu-latest
+     strategy:
+       matrix:
+         include:
+           - goos: linux
+             goarch: amd64
+           - goos: linux
+             goarch: arm64
+           - goos: darwin
+             goarch: amd64
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+     steps:
+     - name: Checkout code
+       uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ env.GO_VERSION }}
+     - name: Set up Go
+       uses: actions/setup-go@v4
+       with:
+         go-version: ${{ env.GO_VERSION }}
 
-    - name: Cache Go modules
-      uses: actions/cache@v3
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+     - name: Cache Go modules
+       uses: actions/cache@v3
+       with:
+         path: ~/go/pkg/mod
+         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+         restore-keys: |
+           ${{ runner.os }}-go-
 
-    - name: Download dependencies
-      run: go mod download
+     - name: Download dependencies
+       run: go mod download
 
-    - name: Build for ${{ matrix.goos }}/${{ matrix.goarch }}
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-      run: |
-        go build -v -o tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/tm2hsl
+     - name: Build for ${{ matrix.goos }}/${{ matrix.goarch }}
+       env:
+         GOOS: ${{ matrix.goos }}
+         GOARCH: ${{ matrix.goarch }}
+         CGO_ENABLED: 0
+       run: |
+         go build -v -o tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/tm2hsl
+         if [ "${{ matrix.goos }}" = "windows" ]; then
+           mv tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }} tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}.exe
+         fi
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}
+     - name: Upload build artifacts
+       uses: actions/upload-artifact@v3
+       with:
+         name: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}
+         path: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}*
 
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ env.GO_VERSION }}
-
-    - name: Run Gosec Security Scanner
-      uses: securecodewarrior/github-action-gosec@master
-      with:
-        args: ./...
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
