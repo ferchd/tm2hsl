@@ -67,6 +67,9 @@ func (n *Normalizer) Normalize(ast *parser.TextMateAST) (*ir.StateMachine, error
 
 // validateAST - Rejects unsupported features
 func (n *Normalizer) validateAST(ast *parser.TextMateAST) error {
+	if ast == nil {
+		return fmt.Errorf("AST is nil")
+	}
 	var unsupported []string
 
 	// Check repository (not supported in v0)
