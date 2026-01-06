@@ -1,4 +1,4 @@
-// normalizer.go - Transformaciones semánticas, evolución independiente
+// normalizer.go - Semantic transformations, independent evolution
 package normalizer
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/ferchd/tm2hsl/internal/parser"
 )
 
-// Normalizer - Convierte AST TextMate a IR formal
+// Normalizer - Converts TextMate AST to formal IR
 type Normalizer struct {
 	supportedFeatures map[string]bool
 	strictMode        bool
@@ -24,7 +24,7 @@ func NewNormalizer() *Normalizer {
 			"contentName":  true,
 			"include-self": true, // $self
 			"include-base": true, // $base
-			// Features NO soportados en v0:
+			// Features not supported in v0:
 			// "include-repository": false,
 			// "begin-captures":     false,
 			// "end-captures":       false,
@@ -34,7 +34,7 @@ func NewNormalizer() *Normalizer {
 	}
 }
 
-// Normalize - Transformación semántica principal
+// Normalize - Main semantic transformation
 func (n *Normalizer) Normalize(ast *parser.TextMateAST) (*ir.StateMachine, error) {
 	if err := n.validateAST(ast); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
@@ -45,35 +45,35 @@ func (n *Normalizer) Normalize(ast *parser.TextMateAST) (*ir.StateMachine, error
 		return nil, fmt.Errorf("failed to build state machine: %w", err)
 	}
 
-	// 1. Expandir includes y flatten patterns
+	// 1. Expand includes and flatten patterns
 	expanded := n.expandPatterns(ast.Patterns, ast.Repository)
 
-	// 2. Convertir a estados y transiciones
+	// 2. Convert to states and transitions
 	for _, pattern := range expanded {
 		if err := n.convertPattern(pattern, machine); err != nil {
 			return nil, err
 		}
 	}
 
-	// 3. Resolver referencias y optimizar estructura
+	// 3. Resolve references and optimize structure
 	n.resolveReferences(machine)
 
-	// 4. Aplicar transformaciones semánticas específicas
+	// 4. Apply specific semantic transformations
 	n.applySemanticTransforms(machine)
 
 	return machine, nil
 }
 
-// validateAST - Rechaza features no soportados
+// validateAST - Rejects unsupported features
 func (n *Normalizer) validateAST(ast *parser.TextMateAST) error {
 	var unsupported []string
 
-	// Verificar repository (no soportado en v0)
+	// Check repository (not supported in v0)
 	if len(ast.Repository) > 0 {
 		unsupported = append(unsupported, "repository")
 	}
 
-	// Verificar includes complejos
+	// Check complex includes
 	if hasComplexIncludes(ast) {
 		unsupported = append(unsupported, "complex-includes")
 	}
@@ -90,7 +90,7 @@ func hasComplexIncludes(ast *parser.TextMateAST) bool {
 	return false
 }
 
-// convertPattern - Mapeo explícito de conceptos TextMate a IR
+// convertPattern - Explicit mapping of TextMate concepts to IR
 func (n *Normalizer) convertPattern(pattern parser.GrammarRule, machine *ir.StateMachine) error {
 	switch {
 	case pattern.Match != "":
@@ -104,15 +104,15 @@ func (n *Normalizer) convertPattern(pattern parser.GrammarRule, machine *ir.Stat
 	}
 }
 
-// applySemanticTransforms - Lógica inteligente aquí, no en parser
+// applySemanticTransforms - Smart logic here, not in parser
 func (n *Normalizer) applySemanticTransforms(machine *ir.StateMachine) {
-	// Ejemplo: transformar capturas con nombre a tokens
+	// Example: transform named captures to tokens
 	n.normalizeCaptureNames(machine)
 
-	// Ejemplo: eliminar estados redundantes
+	// Example: remove redundant states
 	n.removeRedundantStates(machine)
 
-	// Ejemplo: optimizar transiciones con misma prioridad
+	// Example: optimize transitions with same priority
 	n.optimizeTransitionOrder(machine)
 }
 

@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-// TextMateAST - Representación exacta del archivo TextMate
+// TextMateAST - Exact representation of the TextMate file
 type TextMateAST struct {
 	ScopeName          string                 `json:"scopeName" xml:"scopeName"`
 	FileTypes          []string               `json:"fileTypes" xml:"fileTypes>string"`
@@ -19,11 +19,11 @@ type TextMateAST struct {
 	FoldingStartMarker string                 `json:"foldingStartMarker" xml:"foldingStartMarker"`
 	FoldingStopMarker  string                 `json:"foldingStopMarker" xml:"foldingStopMarker"`
 
-	// Campos ignorados en la normalización pero preservados
+	// Fields ignored in normalization but preserved
 	HiddenFields map[string]interface{} `json:"-" xml:"-"`
 }
 
-// GrammarRule - Regla gramatical exacta
+// GrammarRule - Exact grammatical rule
 type GrammarRule struct {
 	Name           string          `json:"name,omitempty" xml:"key>name,omitempty"`
 	Match          string          `json:"match,omitempty" xml:"string>match,omitempty"`
