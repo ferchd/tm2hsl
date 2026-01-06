@@ -47,7 +47,7 @@ func (n *Normalizer) Normalize(ast *parser.TextMateAST) (*ir.StateMachine, error
 	}
 
 	// 1. Expand includes and flatten patterns
-	expanded := n.expandPatterns(ast.Patterns, ast.Repository)
+	expanded := n.expandPatterns(ast.Patterns, ast.Repository, make(map[string]bool), 0)
 
 	// 2. Convert to states and transitions
 	for _, pattern := range expanded {
@@ -118,11 +118,26 @@ func (n *Normalizer) applySemanticTransforms(machine *ir.StateMachine) {
 }
 
 // expandPatterns - Expands includes and flattens patterns
-func (n *Normalizer) expandPatterns(patterns []parser.GrammarRule, repository map[string]parser.GrammarRule) []parser.GrammarRule {
+func (n *Normalizer) expandPatterns(patterns []parser.GrammarRule, repository map[string]parser.GrammarRule, visited map[string]bool, depth int) []parser.GrammarRule {
+	if depth > 10 {
+		return patterns
+	}
 	var expanded []parser.GrammarRule
 	for _, pattern := range patterns {
 		if pattern.Include != "" {
-			if expandedPatterns := n.expandInclude(pattern.Include, repository); expandedPatterns != nil {
+			if expandedPatterns := n.expandInclude(pattern.Include, repository, visited, depth); expandedPatterns != nil {
+				expanded = append(expanded, expandedPatterns...)
+			}
+		} else {
+			expanded = append(expanded, pattern)
+		}
+	}
+	return expanded
+}
+	var expanded []parser.GrammarRule
+	for _, pattern := range patterns {
+		if pattern.Include != "" {
+			if expandedPatterns := n.expandInclude(pattern.Include, repository, visited, depth); expandedPatterns != nil {
 				expanded = append(expanded, expandedPatterns...)
 			}
 		} else {
@@ -133,7 +148,10 @@ func (n *Normalizer) expandPatterns(patterns []parser.GrammarRule, repository ma
 }
 
 // expandInclude - Expands a single include reference
-func (n *Normalizer) expandInclude(include string, repository map[string]parser.GrammarRule) []parser.GrammarRule {
+func (n *Normalizer) expandInclude(include string, repository map[string]parser.GrammarRule, visited map[string]bool, depth int) []parser.GrammarRule {
+	if depth > 10 {
+		return nil
+	}
 	// Handle special includes
 	switch {
 	case include == "$self":
@@ -145,14 +163,71 @@ func (n *Normalizer) expandInclude(include string, repository map[string]parser.
 	case strings.HasPrefix(include, "#"):
 		// Named reference within repository, e.g., "#comment"
 		name := strings.TrimPrefix(include, "#")
-		if rule, exists := repository[name]; exists {
-			return []parser.GrammarRule{rule}
+		if visited[name] {
+			return nil // cycle detected
 		}
+		visited[name] = true
+		if rule, exists := repository[name]; exists {
+			if rule.Include != "" {
+				result := n.expandInclude(rule.Include, repository, visited, depth+1)
+				delete(visited, name)
+				return result
+			} else {
+				result := n.expandPatterns(rule.Patterns, repository, visited, depth+1)
+				delete(visited, name)
+				return result
+			}
+		}
+		delete(visited, name)
 		return nil
 	default:
 		// Direct repository reference
 		if rule, exists := repository[include]; exists {
-			return []parser.GrammarRule{rule}
+			if rule.Include != "" {
+				return n.expandInclude(rule.Include, repository, visited, depth+1)
+			} else {
+				return n.expandPatterns(rule.Patterns, repository, visited, depth+1)
+			}
+		}
+		return nil
+	}
+}
+	// Handle special includes
+	switch {
+	case include == "$self":
+		// $self refers to the current grammar's patterns - for now, return empty to avoid recursion
+		return nil
+	case include == "$base":
+		// $base would refer to base grammar patterns - not implemented yet
+		return nil
+	case strings.HasPrefix(include, "#"):
+		// Named reference within repository, e.g., "#comment"
+		name := strings.TrimPrefix(include, "#")
+		if visited[name] {
+			return nil // cycle detected
+		}
+		visited[name] = true
+		if rule, exists := repository[name]; exists {
+			if rule.Include != "" {
+				result := n.expandInclude(rule.Include, repository, visited, depth+1)
+				delete(visited, name)
+				return result
+			} else {
+				result := n.expandPatterns(rule.Patterns, repository, visited, depth+1)
+				delete(visited, name)
+				return result
+			}
+		}
+		delete(visited, name)
+		return nil
+	default:
+		// Direct repository reference
+		if rule, exists := repository[include]; exists {
+			if rule.Include != "" {
+				return n.expandInclude(rule.Include, repository, visited, depth+1)
+			} else {
+				return n.expandPatterns(rule.Patterns, repository, visited, depth+1)
+			}
 		}
 		return nil
 	}
@@ -214,11 +289,17 @@ func (n *Normalizer) convertBeginEndPattern(pattern parser.GrammarRule, machine 
 	}
 
 	// Intermediate state (inside the block)
-	machine.States[intermediateStateID] = &ir.State{
+	intermediateState := &ir.State{
 		ID:          intermediateStateID,
 		Transitions: []ir.Transition{},
 		IsFinal:     false,
 	}
+	if pattern.ContentName != "" {
+		actionID := ir.ActionID(len(machine.Actions))
+		machine.Actions[actionID] = &ir.PushScopeAction{Scope: pattern.ContentName}
+		intermediateState.OnEntry = []ir.ActionID{actionID}
+	}
+	machine.States[intermediateStateID] = intermediateState
 
 	// End state
 	machine.States[endStateID] = &ir.State{
@@ -232,7 +313,13 @@ func (n *Normalizer) convertBeginEndPattern(pattern parser.GrammarRule, machine 
 		Pattern:  pattern.Begin,
 		Compiled: regexp.MustCompile(pattern.Begin),
 	}
-	var beginActions []ir.ActionID // TODO: push scopes
+	var beginActions []ir.ActionID
+	if pattern.Name != "" {
+		actionID := ir.ActionID(len(machine.Actions))
+		machine.Actions[actionID] = &ir.PushScopeAction{Scope: pattern.Name}
+		beginActions = append(beginActions, actionID)
+	}
+	beginActions = append(beginActions, n.createActionsFromCaptures(pattern.BeginCaptures, machine)...)
 	beginTransition := ir.Transition{
 		Predicate: beginPredicate,
 		Target:    intermediateStateID,
@@ -253,7 +340,16 @@ func (n *Normalizer) convertBeginEndPattern(pattern parser.GrammarRule, machine 
 		Pattern:  pattern.End,
 		Compiled: regexp.MustCompile(pattern.End),
 	}
-	var endActions []ir.ActionID // TODO: pop scopes
+	var endActions []ir.ActionID
+	endActions = append(endActions, n.createActionsFromCaptures(pattern.EndCaptures, machine)...)
+	if pattern.ContentName != "" {
+		actionID := ir.ActionID(len(machine.Actions))
+		machine.Actions[actionID] = &ir.PopScopeAction{Count: 1}
+		endActions = append(endActions, actionID)
+	}
+	actionID := ir.ActionID(len(machine.Actions))
+	machine.Actions[actionID] = &ir.PopScopeAction{Count: 1}
+	endActions = append(endActions, actionID)
 	endTransition := ir.Transition{
 		Predicate: endPredicate,
 		Target:    endStateID,
