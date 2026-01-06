@@ -167,8 +167,8 @@ jobs:
          fi
 
      - name: Upload build artifacts
-       uses: actions/upload-artifact@v3
-       with:
-         name: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}
-         path: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}*
+      uses: actions/upload-artifact@v4
+      with:
+        name: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: tm2hsl-${{ matrix.goos }}-${{ matrix.goarch }}*
 

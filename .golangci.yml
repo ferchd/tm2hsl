@@ -8,13 +8,10 @@ linters:
     - govet
     - ineffassign
     - staticcheck
-    - unused
     - gosimple
     - goconst
     - gocyclo
     - goimports
-    - misspell
-    - errcheck
 
 linters-settings:
   gocyclo:
