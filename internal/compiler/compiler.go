@@ -3,18 +3,20 @@ package compiler
 import (
 	"fmt"
 
-	"github.com/ferchd/tm2hsl/internal/codegen"
 	"github.com/ferchd/tm2hsl/internal/config"
 	"github.com/ferchd/tm2hsl/internal/ir"
+	"github.com/ferchd/tm2hsl/internal/normalizer"
+	"github.com/ferchd/tm2hsl/internal/parser"
 	"github.com/ferchd/tm2hsl/internal/serializer"
 	"github.com/ferchd/tm2hsl/pkg/hsl"
 )
 
 type Compiler struct {
-	config    *config.LanguageConfig
-	grammar   interface{}
-	irProgram *ir.Program
-	bytecode  *hsl.Bytecode
+	config       *config.LanguageConfig
+	grammar      *parser.TextMateAST
+	stateMachine *ir.StateMachine
+	irProgram    *ir.Program
+	bytecode     *hsl.Bytecode
 }
 
 func NewCompiler() *Compiler {
@@ -74,15 +76,29 @@ func (c *Compiler) parseGrammar() error {
 		return fmt.Errorf("no grammar specified in configuration")
 	}
 
-	// Stub implementation
-	c.grammar = "parsed-grammar-stub"
+	// Stub implementation - create a minimal TextMateAST
+	c.grammar = &parser.TextMateAST{
+		ScopeName: "source.test",
+		Name:      "Test Language",
+		Patterns: []parser.GrammarRule{
+			{
+				Match: "function",
+				Name:  "keyword.function",
+			},
+		},
+		Repository: make(map[string]parser.GrammarRule),
+	}
 	return nil
 }
 
 func (c *Compiler) normalize() error {
 	// Convertir gramática TextMate a máquina de estados
-	// Esto es una simplificación - en realidad necesitaríamos
-	// convertir la gramática parseada al tipo correcto
+	norm := normalizer.NewNormalizer()
+	machine, err := norm.Normalize(c.grammar)
+	if err != nil {
+		return fmt.Errorf("normalization failed: %w", err)
+	}
+	c.stateMachine = machine
 	return nil
 }
 
@@ -105,12 +121,8 @@ func (c *Compiler) optimize() {
 }
 
 func (c *Compiler) generateBytecode() error {
-	gen := codegen.NewGenerator(c.irProgram)
-	bytecode, err := gen.Generate()
-	if err != nil {
-		return fmt.Errorf("error generando bytecode: %w", err)
-	}
-	c.bytecode = bytecode
+	ser := serializer.NewSerializer()
+	c.bytecode = ser.ConvertToBytecode(c.stateMachine)
 	return nil
 }
 
