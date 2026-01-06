@@ -186,8 +186,72 @@ func (n *Normalizer) convertMatchPattern(pattern parser.GrammarRule, machine *ir
 	return nil
 }
 
-// convertBeginEndPattern - Stub implementation
+// convertBeginEndPattern - Converts begin/end patterns to IR states
 func (n *Normalizer) convertBeginEndPattern(pattern parser.GrammarRule, machine *ir.StateMachine) error {
+	if machine.States == nil {
+		machine.States = make(map[ir.StateID]*ir.State)
+	}
+
+	startStateID := ir.StateID(len(machine.States))
+	intermediateStateID := startStateID + 1
+	endStateID := startStateID + 2
+
+	// Start state
+	machine.States[startStateID] = &ir.State{
+		ID:          startStateID,
+		Transitions: []ir.Transition{},
+		IsFinal:     false,
+	}
+
+	// Intermediate state (inside the block)
+	machine.States[intermediateStateID] = &ir.State{
+		ID:          intermediateStateID,
+		Transitions: []ir.Transition{},
+		IsFinal:     false,
+	}
+
+	// End state
+	machine.States[endStateID] = &ir.State{
+		ID:          endStateID,
+		Transitions: []ir.Transition{},
+		IsFinal:     true,
+	}
+
+	// Begin transition: from start to intermediate
+	beginPredicate := &ir.RegexPredicate{
+		Pattern:  pattern.Begin,
+		Compiled: regexp.MustCompile(pattern.Begin),
+	}
+	var beginActions []ir.ActionID // TODO: push scopes
+	beginTransition := ir.Transition{
+		Predicate: beginPredicate,
+		Target:    intermediateStateID,
+		Actions:   beginActions,
+		Priority:  0,
+	}
+	machine.States[startStateID].Transitions = append(machine.States[startStateID].Transitions, beginTransition)
+
+	// Process child patterns in intermediate state
+	for _, child := range pattern.Patterns {
+		if err := n.convertPattern(child, machine); err != nil {
+			return err
+		}
+	}
+
+	// End transition: from intermediate to end
+	endPredicate := &ir.RegexPredicate{
+		Pattern:  pattern.End,
+		Compiled: regexp.MustCompile(pattern.End),
+	}
+	var endActions []ir.ActionID // TODO: pop scopes
+	endTransition := ir.Transition{
+		Predicate: endPredicate,
+		Target:    endStateID,
+		Actions:   endActions,
+		Priority:  0,
+	}
+	machine.States[intermediateStateID].Transitions = append(machine.States[intermediateStateID].Transitions, endTransition)
+
 	return nil
 }
 
