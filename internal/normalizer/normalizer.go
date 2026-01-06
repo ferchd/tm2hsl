@@ -3,6 +3,7 @@ package normalizer
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/ferchd/tm2hsl/internal/ir"
 	"github.com/ferchd/tm2hsl/internal/parser"
@@ -115,9 +116,36 @@ func (n *Normalizer) applySemanticTransforms(machine *ir.StateMachine) {
 	n.optimizeTransitionOrder(machine)
 }
 
-// expandPatterns - Stub implementation
+// expandPatterns - Expands includes and flattens patterns
 func (n *Normalizer) expandPatterns(patterns []parser.GrammarRule, repository map[string]parser.GrammarRule) []parser.GrammarRule {
-	return patterns
+	var expanded []parser.GrammarRule
+	for _, pattern := range patterns {
+		if pattern.Include != "" {
+			if expandedPatterns := n.expandInclude(pattern.Include, repository); expandedPatterns != nil {
+				expanded = append(expanded, expandedPatterns...)
+			}
+		} else {
+			expanded = append(expanded, pattern)
+		}
+	}
+	return expanded
+}
+
+// expandInclude - Expands a single include reference
+func (n *Normalizer) expandInclude(include string, repository map[string]parser.GrammarRule) []parser.GrammarRule {
+	if rule, exists := repository[include]; exists {
+		return []parser.GrammarRule{rule}
+	}
+	// Handle $self, $base, etc.
+	switch include {
+	case "$self":
+		// Return self patterns, but for simplicity, ignore
+		return nil
+	case "$base":
+		return nil
+	default:
+		return nil
+	}
 }
 
 // resolveReferences - Stub implementation
@@ -125,8 +153,36 @@ func (n *Normalizer) resolveReferences(machine *ir.StateMachine) {
 	// TODO: implement
 }
 
-// convertMatchPattern - Stub implementation
+// convertMatchPattern - Converts a match pattern to IR states
 func (n *Normalizer) convertMatchPattern(pattern parser.GrammarRule, machine *ir.StateMachine) error {
+	if machine.States == nil {
+		machine.States = make(map[ir.StateID]*ir.State)
+	}
+	startStateID := ir.StateID(len(machine.States))
+	machine.States[startStateID] = &ir.State{
+		ID:          startStateID,
+		Transitions: []ir.Transition{},
+		IsFinal:     true,
+	}
+
+	// Create predicate
+	predicate := &ir.RegexPredicate{
+		Pattern:  pattern.Match,
+		Compiled: regexp.MustCompile(pattern.Match),
+	}
+
+	// Create actions (stub)
+	var actions []ir.ActionID
+
+	transition := ir.Transition{
+		Predicate: predicate,
+		Target:    startStateID,
+		Actions:   actions,
+		Priority:  0,
+	}
+
+	machine.States[startStateID].Transitions = append(machine.States[startStateID].Transitions, transition)
+
 	return nil
 }
 
