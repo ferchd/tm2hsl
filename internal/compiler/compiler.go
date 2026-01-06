@@ -2,13 +2,10 @@ package compiler
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/ferchd/tm2hsl/internal/codegen"
 	"github.com/ferchd/tm2hsl/internal/config"
 	"github.com/ferchd/tm2hsl/internal/ir"
-	"github.com/ferchd/tm2hsl/internal/optimizer"
-	"github.com/ferchd/tm2hsl/internal/parser"
 	"github.com/ferchd/tm2hsl/internal/serializer"
 	"github.com/ferchd/tm2hsl/pkg/hsl"
 )
@@ -48,7 +45,7 @@ func (c *Compiler) Compile(configPath string) (*CompilationResult, error) {
 	}
 
 	// 5. Optimizar
-	c.optimize()
+	// TODO: Implement optimization
 
 	// 6. Generar bytecode
 	if err = c.generateBytecode(); err != nil {
@@ -71,27 +68,14 @@ func (c *Compiler) loadConfig(path string) error {
 }
 
 func (c *Compiler) parseGrammar() error {
-	p := parser.NewParser()
-
+	// TODO: Implement grammar parsing
 	grammarPath := c.config.GrammarPath()
 	if grammarPath == "" {
-		return fmt.Errorf("no se especificó gramática en configuración")
+		return fmt.Errorf("no grammar specified in configuration")
 	}
 
-	ext := filepath.Ext(grammarPath)
-	switch ext {
-	case ".json":
-		grammar, err := p.ParseFile(grammarPath)
-		if err != nil {
-			return fmt.Errorf("error parseando gramática: %w", err)
-		}
-		c.grammar = grammar
-	case ".tmLanguage", ".plist":
-		return fmt.Errorf("formatos plist no soportados aún")
-	default:
-		return fmt.Errorf("formato de gramática no soportado: %s", ext)
-	}
-
+	// Stub implementation
+	c.grammar = "parsed-grammar-stub"
 	return nil
 }
 
@@ -111,8 +95,13 @@ func (c *Compiler) buildIR() error {
 }
 
 func (c *Compiler) optimize() {
-	opt := optimizer.NewOptimizer(c.irProgram)
-	c.irProgram = opt.Optimize()
+	// TODO: Implement optimization
+	// opt := optimizer.NewOptimizer()
+	// optimized, err := opt.Optimize(c.irProgram)
+	// if err != nil {
+	//     // handle error
+	// }
+	// c.irProgram = optimized
 }
 
 func (c *Compiler) generateBytecode() error {

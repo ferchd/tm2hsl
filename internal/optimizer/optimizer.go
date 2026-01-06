@@ -13,7 +13,7 @@ type Optimizer struct {
 	passes []OptimizationPass
 }
 
-func NewOptimizer(machine *ir.StateMachine) *Optimizer {
+func NewOptimizer() *Optimizer {
 	return &Optimizer{
 		passes: []OptimizationPass{
 			&RemoveUnreachableStates{},
