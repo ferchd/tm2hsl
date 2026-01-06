@@ -1,18 +1,18 @@
 package normalizer
 
-// Expander - Expande referencias y includes en gramáticas
+// Expander - Expands references and includes in grammars
 type Expander struct {
-	// Configuración del expansor
+	// Expander configuration
 }
 
-// NewExpander - Crea un nuevo expansor
+// NewExpander - Creates a new expander
 func NewExpander() *Expander {
 	return &Expander{}
 }
 
-// Expand - Expande todas las referencias en la gramática
+// Expand - Expands all references in the grammar
 func (e *Expander) Expand(grammar interface{}) (interface{}, error) {
-	// TODO: Implementar expansión de referencias
-	// Por ahora, devolver sin cambios
+	// TODO: Implement reference expansion
+	// For now, return unchanged
 	return grammar, nil
 }

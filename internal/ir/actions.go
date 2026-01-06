@@ -6,46 +6,46 @@ import (
 	"github.com/ferchd/tm2hsl/internal/parser"
 )
 
-// Action - Acción atómica en la máquina de estados
+// Action - Atomic action in the state machine
 type Action interface {
 	Type() ActionType
 	String() string
 	Validate() error
 }
 
-// ActionType - Tipos de acciones soportadas
+// ActionType - Supported action types
 type ActionType int
 
 const (
-	ActionPushScope    ActionType = iota // Equivalente a begin
-	ActionPopScope                       // Equivalente a end
-	ActionSetScope                       // Cambiar scope actual
-	ActionEmitToken                      // Emitir token
+	ActionPushScope    ActionType = iota // Equivalent to begin
+	ActionPopScope                       // Equivalent to end
+	ActionSetScope                       // Change current scope
+	ActionEmitToken                      // Emit token
 	ActionPushState                      // Push state stack
 	ActionPopState                       // Pop state stack
-	ActionCaptureGroup                   // Capturar grupo
+	ActionCaptureGroup                   // Capture group
 )
 
-// PushScopeAction - Comenzar nuevo scope
+// PushScopeAction - Start new scope
 type PushScopeAction struct {
 	Scope string
-	Index int // Para capturas numeradas
+	Index int // For numbered captures
 }
 
 func (a *PushScopeAction) Type() ActionType { return ActionPushScope }
 func (a *PushScopeAction) String() string   { return fmt.Sprintf("push-scope:%s", a.Scope) }
 func (a *PushScopeAction) Validate() error  { return nil }
 
-// PopScopeAction - Terminar scope
+// PopScopeAction - End scope
 type PopScopeAction struct {
-	Count int // Número de scopes a pop (usualmente 1)
+	Count int // Number of scopes to pop (usually 1)
 }
 
 func (a *PopScopeAction) Type() ActionType { return ActionPopScope }
 func (a *PopScopeAction) String() string   { return "pop-scope" }
 func (a *PopScopeAction) Validate() error  { return nil }
 
-// SetScopeAction - Cambiar scope actual
+// SetScopeAction - Change current scope
 type SetScopeAction struct {
 	Scope string
 }
@@ -54,7 +54,7 @@ func (a *SetScopeAction) Type() ActionType { return ActionSetScope }
 func (a *SetScopeAction) String() string   { return fmt.Sprintf("set-scope:%s", a.Scope) }
 func (a *SetScopeAction) Validate() error  { return nil }
 
-// EmitTokenAction - Emitir token con scopes acumulados
+// EmitTokenAction - Emit token with accumulated scopes
 type EmitTokenAction struct {
 	Text  string
 	Start Position
@@ -71,7 +71,7 @@ type Position struct {
 	Column int
 }
 
-// CaptureGroupAction - Capturar texto para grupo
+// CaptureGroupAction - Capture text for group
 type CaptureGroupAction struct {
 	GroupID int
 	Name    string
@@ -83,7 +83,7 @@ func (a *CaptureGroupAction) String() string {
 }
 func (a *CaptureGroupAction) Validate() error { return nil }
 
-// ActionSequence - Secuencia de acciones
+// ActionSequence - Sequence of actions
 type ActionSequence struct {
 	Actions []Action
 }

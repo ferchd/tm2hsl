@@ -5,29 +5,29 @@ import (
 	"regexp"
 )
 
-// Predicate - Interfaz para condiciones de transición
+// Predicate - Interface for transition conditions
 type Predicate interface {
 	Type() PredicateType
 	String() string
 	Equal(other Predicate) bool
 }
 
-// PredicateType - Tipos de predicados soportados
+// PredicateType - Supported predicate types
 type PredicateType int
 
 const (
-	PredicateChar       PredicateType = iota // Carácter simple
-	PredicateCharSet                         // Conjunto de caracteres [a-z]
-	PredicateCharClass                       // Clase \w, \d, \s
+	PredicateChar       PredicateType = iota // Simple character
+	PredicateCharSet                         // Character set [a-z]
+	PredicateCharClass                       // Class \w, \d, \s
 	PredicateString                          // String literal
-	PredicateRegex                           // Expresión regular
-	PredicateAny                             // Cualquier carácter
-	PredicateEOF                             // Fin de archivo
-	PredicateLookahead                       // Lookahead positivo/negativo
-	PredicateLookbehind                      // Lookbehind positivo/negativo
+	PredicateRegex                           // Regular expression
+	PredicateAny                             // Any character
+	PredicateEOF                             // End of file
+	PredicateLookahead                       // Positive/negative lookahead
+	PredicateLookbehind                      // Positive/negative lookbehind
 )
 
-// CharPredicate - Predicado de carácter único
+// CharPredicate - Single character predicate
 type CharPredicate struct {
 	Char rune
 }
@@ -35,10 +35,10 @@ type CharPredicate struct {
 func (p *CharPredicate) Type() PredicateType { return PredicateChar }
 func (p *CharPredicate) String() string      { return fmt.Sprintf("char('%c')", p.Char) }
 
-// CharSetPredicate - Conjunto de caracteres
+// CharSetPredicate - Character set
 type CharSetPredicate struct {
-	Chars   string      // Caracteres literales
-	Ranges  []CharRange // Rangos [a-z]
+	Chars   string      // Literal characters
+	Ranges  []CharRange // Ranges [a-z]
 	Negated bool        // [^abc]
 }
 
@@ -46,11 +46,11 @@ type CharRange struct {
 	Start, End rune
 }
 
-// RegexPredicate - Expresión regular compilada
+// RegexPredicate - Compiled regular expression
 type RegexPredicate struct {
 	Pattern  string
-	Compiled *regexp.Regexp // Mantenido para referencia
-	Simple   bool           // True si es una regex simple (sin grupos complejos)
+	Compiled *regexp.Regexp // Kept for reference
+	Simple   bool           // True if simple regex (no complex groups)
 }
 
 func (p *RegexPredicate) Type() PredicateType { return PredicateRegex }
@@ -62,7 +62,7 @@ func (p *RegexPredicate) Equal(other Predicate) bool {
 	return false
 }
 
-// AnyPredicate - Cualquier carácter
+// AnyPredicate - Any character
 type AnyPredicate struct{}
 
 func (p *AnyPredicate) Type() PredicateType { return PredicateAny }
@@ -75,10 +75,10 @@ func (p *AnyPredicate) Equal(other Predicate) bool {
 // LookaheadPredicate - Lookahead
 type LookaheadPredicate struct {
 	Predicate Predicate
-	Positive  bool // true=positivo, false=negativo
+	Positive  bool // true=positive, false=negative
 }
 
-// CompoundPredicate - Predicado compuesto (AND/OR)
+// CompoundPredicate - Compound predicate (AND/OR)
 type CompoundPredicate struct {
 	Op    CompoundOp
 	Preds []Predicate
@@ -91,7 +91,7 @@ const (
 	OpOr
 )
 
-// PredicateBuilder - Constructor de predicados
+// PredicateBuilder - Predicate constructor
 type PredicateBuilder struct {
 	strict bool
 }
@@ -100,18 +100,18 @@ func NewPredicateBuilder(strict bool) *PredicateBuilder {
 	return &PredicateBuilder{strict: strict}
 }
 
-// FromTextMateMatch - Convierte regex TextMate a predicados IR
+// FromTextMateMatch - Converts TextMate regex to IR predicates
 func (b *PredicateBuilder) FromTextMateMatch(pattern string) (Predicate, error) {
 	if b.strict && containsUnsupportedRegex(pattern) {
 		return nil, fmt.Errorf("unsupported regex pattern: %s", pattern)
 	}
 
-	// Simplificar regex TextMate a predicados básicos
+	// Simplify TextMate regex to basic predicates
 	return b.simplifyRegex(pattern)
 }
 
 func (b *PredicateBuilder) simplifyRegex(pattern string) (Predicate, error) {
-	// Convertir a predicados más simples cuando sea posible
+	// Convert to simpler predicates when possible
 	switch {
 	case pattern == ".":
 		return &AnyPredicate{}, nil
@@ -120,7 +120,7 @@ func (b *PredicateBuilder) simplifyRegex(pattern string) (Predicate, error) {
 	case isLiteral(pattern):
 		return b.buildLiteralPredicate(pattern)
 	default:
-		// Mantener como regex genérica
+		// Keep as generic regex
 		return &RegexPredicate{
 			Pattern: pattern,
 			Simple:  false,
