@@ -171,8 +171,8 @@ func (n *Normalizer) convertMatchPattern(pattern parser.GrammarRule, machine *ir
 		Compiled: regexp.MustCompile(pattern.Match),
 	}
 
-	// Create actions (stub)
-	var actions []ir.ActionID
+	// Create actions from captures
+	actions := n.createActionsFromCaptures(pattern.Captures, machine)
 
 	transition := ir.Transition{
 		Predicate: predicate,
@@ -273,4 +273,18 @@ func (n *Normalizer) removeRedundantStates(machine *ir.StateMachine) {
 // optimizeTransitionOrder - Stub implementation
 func (n *Normalizer) optimizeTransitionOrder(machine *ir.StateMachine) {
 	// TODO: implement
+}
+
+// createActionsFromCaptures - Creates IR actions from capture definitions
+func (n *Normalizer) createActionsFromCaptures(captures map[int]parser.Capture, machine *ir.StateMachine) []ir.ActionID {
+	var actions []ir.ActionID
+	for groupIndex, capture := range captures {
+		actionID := ir.ActionID(len(machine.Actions))
+		machine.Actions[actionID] = &ir.PushScopeAction{
+			Scope: capture.Name,
+			Index: groupIndex,
+		}
+		actions = append(actions, actionID)
+	}
+	return actions
 }
