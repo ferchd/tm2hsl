@@ -1,0 +1,40 @@
+# Code owners for tm2hsl
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners
+* @ferchd
+
+# Core compiler components
+/internal/compiler/ @ferchd
+/internal/ir/ @ferchd
+/internal/optimizer/ @ferchd
+
+# Language support
+/internal/parser/ @ferchd
+/internal/normalizer/ @ferchd
+
+# Output generation
+/internal/codegen/ @ferchd
+/internal/serializer/ @ferchd
+/pkg/hsl/ @ferchd
+
+# CLI and tooling
+/cmd/ @ferchd
+/internal/cli/ @ferchd
+/scripts/ @ferchd
+
+# Testing infrastructure
+/internal/tester/ @ferchd
+*_test.go @ferchd
+
+# Documentation
+*.md @ferchd
+/docs/ @ferchd
+
+# CI/CD
+.github/ @ferchd
+Makefile @ferchd
+
+# Dependencies and project config
+go.mod @ferchd
+go.sum @ferchd

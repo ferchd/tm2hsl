@@ -1,0 +1,72 @@
+# Conventional Commits
+
+This project follows the [Conventional Commits](https://conventionalcommits.org/) specification for commit messages.
+
+## Format
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+## Types
+
+- **feat**: Nueva funcionalidad
+- **fix**: Corrección de bugs
+- **docs**: Cambios en documentación
+- **style**: Cambios que no afectan el significado del código (espacios, formato, etc.)
+- **refactor**: Cambios en el código que no corrigen bugs ni añaden funcionalidad
+- **perf**: Cambios que mejoran el rendimiento
+- **test**: Añadir o corregir tests
+- **build**: Cambios que afectan el sistema de build o dependencias externas
+- **ci**: Cambios en archivos de configuración de CI
+- **chore**: Otros cambios que no modifican src o archivos de test
+- **revert**: Revertir commits anteriores
+
+## Scopes
+
+- `core`: Cambios en el núcleo del compilador
+- `cli`: Cambios en la interfaz de línea de comandos
+- `parser`: Cambios en el parsing de gramáticas TextMate
+- `ir`: Cambios en la representación intermedia
+- `codegen`: Cambios en la generación de bytecode
+- `serializer`: Cambios en la serialización
+- `optimizer`: Cambios en las optimizaciones
+- `config`: Cambios en la configuración
+- `docs`: Cambios en documentación
+- `tests`: Cambios en tests
+
+## Examples
+
+```
+feat(cli): añadir comando validate para validar gramáticas
+
+fix(parser): corregir parsing de includes recursivos
+
+docs: actualizar especificación de HSL v1.1
+
+refactor(ir): simplificar representación de estados
+
+perf(optimizer): optimizar eliminación de estados inalcanzables
+
+test(lexer): añadir tests para tokenización incremental
+
+build: actualizar Go a versión 1.21
+```
+
+## Branch Naming
+
+Branches siguen el patrón: `<type>/<description>`
+
+- `feature/nueva-funcionalidad`
+- `fix/correccion-bug`
+- `docs/actualizar-readme`
+- `refactor/reestructurar-modulos`
+
+Para branches principales:
+- `main` o `master`: rama principal
+- `develop`: rama de desarrollo (si se usa Git Flow)
+- `release/v1.0.0`: ramas de release
