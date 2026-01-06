@@ -13,10 +13,11 @@ import (
 
 type CLI struct {
 	Compile struct {
-		Config       string `arg:"" name:"config" help:"Ruta al archivo language.toml"`
-		Output       string `short:"o" help:"Archivo de salida HSL" default:"output.hsl"`
+		Config       string `arg:"" name:"config" help:"Path to language.toml"`
+		Output       string `short:"o" help:"Output HSL file" default:"output.hsl"`
 		ValidateOnly bool   `short:"v" help:"Only validate without generating bytecode"`
-	} `cmd:"" help:"Compilar una gramática"`
+		Verbose      bool   `short:"V" help:"Enable verbose output"`
+	} `cmd:"" help:"Compile a TextMate grammar to HSL bytecode"`
 
 	Test struct {
 		Config  string `arg:"" name:"config" help:"Path to language.toml"`
@@ -41,8 +42,8 @@ func Execute() error {
 func (c *CLI) RunCompile(ctx *kong.Context) error {
 	configPath, _ := filepath.Abs(c.Compile.Config)
 
-	compiler := compiler.NewCompiler()
-	result, err := compiler.Compile(configPath)
+	cmp := compiler.NewCompiler()
+	result, err := cmp.Compile(configPath)
 	if err != nil {
 		return fmt.Errorf("compilation error: %w", err)
 	}
@@ -57,6 +58,10 @@ func (c *CLI) RunCompile(ctx *kong.Context) error {
 		return fmt.Errorf("error writing bytecode: %w", err)
 	}
 
+	if c.Compile.Verbose {
+		fmt.Printf("Compilation stats: %d regex, %d states, %d rules\n",
+			result.Stats.RegexCount, result.Stats.StateCount, result.Stats.RuleCount)
+	}
 	fmt.Printf("HSL bytecode generated: %s\n", outputPath)
 
 	return nil
