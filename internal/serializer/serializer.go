@@ -20,12 +20,12 @@ func NewSerializer() *Serializer {
 }
 
 func (s *Serializer) Serialize(bytecode *hsl.Bytecode, w io.Writer) error {
-	// 1. Cabecera
+	// 1. Header
 	if err := binary.Write(w, s.byteOrder, &bytecode.Header); err != nil {
 		return err
 	}
 
-	// 2. Escribir offsets dinámicos (se actualizarán después)
+	// 2. Write dynamic offsets (will be updated later)
 	offsets := struct {
 		StringTable uint32
 		RegexTable  uint32
@@ -39,43 +39,43 @@ func (s *Serializer) Serialize(bytecode *hsl.Bytecode, w io.Writer) error {
 		return err
 	}
 
-	// 3. Tabla de strings
+	// 3. String table
 	offsets.StringTable = uint32(offsetPos)
 	if err := s.writeStringTable(w, &bytecode.StringTable); err != nil {
 		return err
 	}
 
-	// 4. Tabla de regex
+	// 4. Regex table
 	offsets.RegexTable = uint32(offsetPos)
 	if err := s.writeRegexTable(w, &bytecode.RegexTable); err != nil {
 		return err
 	}
 
-	// 5. Tabla de scopes
+	// 5. Scope table
 	offsets.ScopeTable = uint32(offsetPos)
 	if err := s.writeScopeTable(w, &bytecode.ScopeTable); err != nil {
 		return err
 	}
 
-	// 6. Tabla de estados
+	// 6. State table
 	offsets.StateTable = uint32(offsetPos)
 	if err := s.writeStateTable(w, &bytecode.StateTable); err != nil {
 		return err
 	}
 
-	// 7. Tabla de reglas
+	// 7. Rule table
 	offsets.RuleTable = uint32(offsetPos)
 	if err := s.writeRuleTable(w, &bytecode.RuleTable); err != nil {
 		return err
 	}
 
-	// 8. Volver atrás y escribir offsets reales
+	// 8. Go back and write real offsets
 	if seeker, ok := w.(io.Seeker); ok {
 		seeker.Seek(offsetPos, io.SeekStart)
 		binary.Write(w, s.byteOrder, &offsets)
 	}
 
-	// 9. Escribir tamaño total
+	// 9. Write total size
 	if seeker, ok := w.(io.Seeker); ok {
 		endPos, _ := seeker.Seek(0, io.SeekCurrent)
 		seeker.Seek(int64(binary.Size(bytecode.Header)-8), io.SeekStart)
@@ -123,14 +123,14 @@ func (s *Serializer) writeStringTable(w io.Writer, table *hsl.StringTable) error
 		return err
 	}
 
-	// Escribir offsets
+	// Write offsets
 	for _, offset := range table.Offsets {
 		if err := binary.Write(w, s.byteOrder, offset); err != nil {
 			return err
 		}
 	}
 
-	// Escribir datos de strings
+	// Write string data
 	_, err := w.Write(table.Data)
 	return err
 }
@@ -229,7 +229,7 @@ func (s *Serializer) writeRuleTable(w io.Writer, table *hsl.RuleTable) error {
 			return err
 		}
 
-		// Escribir capturas
+		// Write captures
 		for i := uint8(0); i < entry.CaptureCount; i++ {
 			cap := entry.Captures[i]
 			if err := binary.Write(w, s.byteOrder, cap.Group); err != nil {
