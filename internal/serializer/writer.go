@@ -9,7 +9,7 @@ import (
 	"github.com/ferchd/tm2hsl/internal/ir"
 )
 
-// BytecodeWriter - Escribe bytecode con alineación
+// BytecodeWriter - Writes bytecode with alignment
 type BytecodeWriter struct {
 	w      io.Writer
 	offset uint32
@@ -26,7 +26,7 @@ func NewBytecodeWriter(w io.Writer) *BytecodeWriter {
 	}
 }
 
-// WriteBytecode - Escribe todo el bytecode
+// WriteBytecode - Writes entire bytecode
 func (w *BytecodeWriter) WriteBytecode(machine *ir.StateMachine) error {
 	// 1. Preparar layout
 	if err := w.prepareLayout(machine); err != nil {
@@ -88,7 +88,7 @@ func (w *BytecodeWriter) writeHeader() {
 	// Tamaño fijo del header
 	w.layout.Header.HeaderSize = 64
 
-	// Escribir header
+	// Write header
 	binary.Write(w.buffer, binary.LittleEndian, w.layout.Header)
 	w.offset += 64
 }

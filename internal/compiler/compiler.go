@@ -26,27 +26,27 @@ func NewCompiler() *Compiler {
 func (c *Compiler) Compile(configPath string) (*CompilationResult, error) {
 	var err error
 
-	// 1. Cargar configuración
+	// 1. Load configuration
 	if err = c.loadConfig(configPath); err != nil {
 		return nil, err
 	}
 
-	// 2. Parsear gramática TextMate
+	// 2. Parse TextMate grammar
 	if err = c.parseGrammar(); err != nil {
 		return nil, err
 	}
 
-	// 3. Normalizar a máquina de estados
+	// 3. Normalize to state machine
 	if err = c.normalize(); err != nil {
 		return nil, err
 	}
 
-	// 4. Convertir a IR
+	// 4. Convert to IR
 	if err = c.buildIR(); err != nil {
 		return nil, err
 	}
 
-	// 5. Optimizar
+	// 5. Optimize
 	// TODO: Implement optimization
 
 	// 6. Generar bytecode
@@ -63,7 +63,7 @@ func (c *Compiler) Compile(configPath string) (*CompilationResult, error) {
 func (c *Compiler) loadConfig(path string) error {
 	cfg, err := config.LoadConfig(path)
 	if err != nil {
-		return fmt.Errorf("error cargando configuración: %w", err)
+		return fmt.Errorf("error loading configuration: %w", err)
 	}
 	c.config = cfg
 	return nil
@@ -92,7 +92,6 @@ func (c *Compiler) parseGrammar() error {
 }
 
 func (c *Compiler) normalize() error {
-	// Convertir gramática TextMate a máquina de estados
 	norm := normalizer.NewNormalizer()
 	machine, err := norm.Normalize(c.grammar)
 	if err != nil {
@@ -105,8 +104,8 @@ func (c *Compiler) normalize() error {
 func (c *Compiler) buildIR() error {
 	c.irProgram = ir.NewProgram(c.config.Name, c.config.Scope)
 
-	// Convertir máquina de estados a IR
-	// Implementación simplificada
+	// Convert state machine to IR
+	// Simplified implementation
 	return nil
 }
 

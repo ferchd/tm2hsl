@@ -36,7 +36,7 @@ func computeChecksum(data []byte) uint32 {
 	return sum
 }
 
-// BytecodeHeader - Encabezado fijo
+// BytecodeHeader - Fixed header
 type BytecodeHeader struct {
 	Magic           [4]byte // 'HSL1'
 	Version         uint16  // 0x0001
@@ -59,7 +59,7 @@ type BytecodeHeader struct {
 	Checksum        uint32
 }
 
-// BytecodeLayout - Layout predefinido
+// BytecodeLayout - Predefined layout
 type BytecodeLayout struct {
 	Header      BytecodeHeader
 	StateTable  []StateEntry  // Tabla ordenada
@@ -69,7 +69,7 @@ type BytecodeLayout struct {
 	RegexPool   []RegexEntry  // Pool de regex compiladas
 }
 
-// Serialize - Writer de formato estable
+// Serialize - Stable format writer
 func Serialize(machine *ir.StateMachine) ([]byte, error) {
 	layout := BytecodeLayout{}
 
@@ -89,10 +89,10 @@ func Serialize(machine *ir.StateMachine) ([]byte, error) {
 	// 3. Calcular offsets y checksum
 	buf := &bytes.Buffer{}
 
-	// Header en offset fijo 0
+	// Header at fixed offset 0
 	binary.Write(buf, binary.LittleEndian, header)
 
-	// Tablas en offsets predecibles
+	// Tables at predictable offsets
 	stateOffset := binary.Size(header)
 	_ = stateOffset // TODO: Use stateOffset
 	// etc.
