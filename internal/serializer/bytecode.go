@@ -22,7 +22,7 @@ func serializeTokens(tokens map[ir.TokenID]ir.TokenDef) []TokenEntry {
 	return []TokenEntry{}
 }
 
-func serializeActions(actions map[ir.ActionID]*ir.Action) []ActionEntry {
+func serializeActions(actions map[ir.ActionID]ir.Action) []ActionEntry {
 	// TODO: Implement action serialization
 	return []ActionEntry{}
 }

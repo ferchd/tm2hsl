@@ -9,7 +9,7 @@ type StateMachine struct {
 	Initial StateID
 	States  map[StateID]*State
 	Tokens  map[TokenID]TokenDef
-	Actions map[ActionID]*Action
+	Actions map[ActionID]Action
 }
 
 type StateID uint32
@@ -44,6 +44,6 @@ func BuildFromAST(ast *parser.TextMateAST) (*StateMachine, error) {
 		Initial: 0,
 		States:  make(map[StateID]*State),
 		Tokens:  make(map[TokenID]TokenDef),
-		Actions: make(map[ActionID]*Action),
+		Actions: make(map[ActionID]Action),
 	}, nil
 }
